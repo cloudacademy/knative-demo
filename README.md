@@ -380,6 +380,9 @@ spec:
   template:
     metadata:
       name: cloudacademy-service1-v1
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "1"
     spec:
       containers:
       - image: cloudacademydevops/simplelogger:v1
@@ -395,6 +398,9 @@ spec:
   template:
     metadata:
       name: cloudacademy-service2-v1
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "1"
     spec:
       containers:
       - image: cloudacademydevops/simplelogger:v1
@@ -515,6 +521,9 @@ spec:
   template:
     metadata:
       name: cloudacademy-service1-v1
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "1"
     spec:
       containers:
       - image: cloudacademydevops/simplelogger:v1
@@ -530,6 +539,9 @@ spec:
   template:
     metadata:
       name: cloudacademy-service2-v1
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "1"
     spec:
       containers:
       - image: cloudacademydevops/simplelogger:v1
@@ -545,6 +557,9 @@ spec:
   template:
     metadata:
       name: cloudacademy-service3-v1
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "1"
     spec:
       containers:
       - image: cloudacademydevops/simplelogger:v1
