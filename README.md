@@ -1,4 +1,4 @@
-# AKS VoteApp Deployment Instructions
+# Knative Deployment Instructions
 
 The following instructions are used to demonstrate Knative Serving and Eventing configurations.
 
