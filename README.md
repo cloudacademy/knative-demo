@@ -16,6 +16,7 @@ ISTIO_VERSION=1.4.7
 kubectl apply -f https://raw.githubusercontent.com/knative/serving/master/third_party/istio-$ISTIO_VERSION/istio-crds.yaml
 
 kubectl apply -f https://raw.githubusercontent.com/knative/serving/master/third_party/istio-$ISTIO_VERSION/istio-minimal.yaml
+
 ```
 
 ## STEP 1.2:
@@ -42,6 +43,7 @@ kubectl apply -f https://github.com/knative/serving/releases/download/v$KNATIVE_
 kubectl apply -f https://github.com/knative/serving/releases/download/v$KNATIVE_VERSION/serving-core.yaml
 
 kubectl apply -f https://github.com/knative/serving/releases/download/v$KNATIVE_VERSION/serving-istio.yaml
+
 ```
 
 ## STEP 1.4:
@@ -58,6 +60,7 @@ Setup xip.io for custom domain - provides wildcarded dynamic dns
 
 ```
 kubectl apply -f https://github.com/knative/serving/releases/download/v$KNATIVE_VERSION/serving-default-domain.yaml
+
 ```
 
 ## STEP 1.6:
@@ -79,6 +82,7 @@ kubectl apply -f https://github.com/knative/eventing/releases/download/v$KNATIVE
 kubectl apply -f https://github.com/knative/eventing/releases/download/v$KNATIVE_VERSION/in-memory-channel.yaml
 
 kubectl apply -f https://github.com/knative/eventing/releases/download/v$KNATIVE_VERSION/channel-broker.yaml
+
 ```
 
 ## STEP 1.7:
