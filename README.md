@@ -13,9 +13,7 @@ Install Knative
 
 ## STEP 1.1:
 
-### Install Istio using ```istioctl```
-
-Download and install ```istioctl``` command:
+Download and install ```istioctl``` command locally. This is used to now install Istio into the Kubernetes cluster:
 
 ```
 curl -L https://istio.io/downloadIstio | sh -
