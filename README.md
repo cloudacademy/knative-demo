@@ -1,6 +1,8 @@
 # Knative Deployment Instructions
 
-The following instructions are used to demonstrate Knative Serving and Eventing configurations.
+The following instructions are used to demonstrate Knative Serving and Eventing configurations. 
+
+**Note**: The following instructions have been tested on MacOS.
 
 **Update** (Wed 25 Nov 2020) - instructions upgraded to work with the following versions:
 - Kubernetes: `v1.18.10`
