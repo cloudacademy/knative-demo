@@ -2,53 +2,69 @@
 
 The following instructions are used to demonstrate Knative Serving and Eventing configurations.
 
+**Update** (Wed 25 Nov 2020)
+Upgraded to work with the following versions:
+- Kubernetes: `v1.18.10`
+- Istio: `v1.8.0`
+- Knative: `v0.19.0`
+
 # STEP 1:
 
 Install Knative
 
 ## STEP 1.1:
 
-Install Istio
+### Install Istio using ```istioctl```
+
+Download and install ```istioctl``` command:
 
 ```
-ISTIO_VERSION=1.4.7
+curl -L https://istio.io/downloadIstio | sh -
+cd istio-1.8.0/bin
+cp istioctl /usr/local/bin/
+```
 
-kubectl apply -f https://raw.githubusercontent.com/knative/serving/master/third_party/istio-$ISTIO_VERSION/istio-crds.yaml
+List the available Istio configuration [profiles](https://istio.io/latest/docs/setup/additional-setup/config-profiles/):
 
-kubectl apply -f https://raw.githubusercontent.com/knative/serving/master/third_party/istio-$ISTIO_VERSION/istio-minimal.yaml
+```
+istioctl profile list
+```
 
+Install the **default** Istio configuration profile:
+
+```
+istioctl install --set profile=default -y
 ```
 
 ## STEP 1.2:
 
-Check pods have STATUS 'Running'
+The following commands can be used to troubleshoot Istio installations:
 
 ```
+kubectl get ns
 kubectl get pods -n istio-system
+kubectl get pods -n istio-system --watch
+kubectl describe pod -n istio-system
+kubectl describe deploy -n istio-system
 ```
 
 ## STEP 1.3:
 
-Install Serving
+Install Knative Serving
 
 * Serving CRDs
 * Serving Core Components
 * Knative Istio Controller needed for Serving
 
 ```
-KNATIVE_VERSION=0.13.0
-
-kubectl apply -f https://github.com/knative/serving/releases/download/v$KNATIVE_VERSION/serving-crds.yaml
-
-kubectl apply -f https://github.com/knative/serving/releases/download/v$KNATIVE_VERSION/serving-core.yaml
-
-kubectl apply -f https://github.com/knative/serving/releases/download/v$KNATIVE_VERSION/serving-istio.yaml
-
+kubectl apply --filename https://github.com/knative/serving/releases/download/v0.19.0/serving-crds.yaml
+kubectl apply --filename https://github.com/knative/serving/releases/download/v0.19.0/serving-core.yaml
+kubectl apply --filename https://github.com/knative/net-istio/releases/download/v0.19.0/release.yaml
 ```
 
 ## STEP 1.4:
 
-Check Serving pods are running
+Check Knative Serving pods are running
 
 ```
 kubectl get pods -n knative-serving
@@ -59,7 +75,7 @@ kubectl get pods -n knative-serving
 Setup xip.io for custom domain - provides wildcarded dynamic dns
 
 ```
-kubectl apply -f https://github.com/knative/serving/releases/download/v$KNATIVE_VERSION/serving-default-domain.yaml
+kubectl apply --filename https://github.com/knative/serving/releases/download/v0.19.0/serving-default-domain.yaml
 
 ```
 
@@ -73,16 +89,10 @@ Install Eventing
 * Default Broker
 
 ```
-KNATIVE_VERSION=0.13.0
-
-kubectl apply -f https://github.com/knative/eventing/releases/download/v$KNATIVE_VERSION/eventing-crds.yaml
-
-kubectl apply -f https://github.com/knative/eventing/releases/download/v$KNATIVE_VERSION/eventing-core.yaml
-
-kubectl apply -f https://github.com/knative/eventing/releases/download/v$KNATIVE_VERSION/in-memory-channel.yaml
-
-kubectl apply -f https://github.com/knative/eventing/releases/download/v$KNATIVE_VERSION/channel-broker.yaml
-
+kubectl apply --filename https://github.com/knative/eventing/releases/download/v0.19.0/eventing-crds.yaml
+kubectl apply --filename https://github.com/knative/eventing/releases/download/v0.19.0/eventing-core.yaml
+kubectl apply --filename https://github.com/knative/eventing/releases/download/v0.19.0/in-memory-channel.yaml
+kubectl apply --filename https://github.com/knative/eventing/releases/download/v0.19.0/mt-channel-broker.yaml
 ```
 
 ## STEP 1.7:
@@ -116,7 +126,7 @@ kubectl config set-context --current --namespace cloudacademy
 
 # Step 3
 
-Example Knative Service
+Deploy Example Knative Service
 
 # Step 3.1
 
@@ -125,7 +135,7 @@ Install example helloworld service
 ```
 for version in {1..2}; do
 cat << EOF | kubectl apply -f -
-apiVersion: serving.knative.dev/v1alpha1
+apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: hellosvc
@@ -167,7 +177,7 @@ Install example helloworld service with traffic splitting
 
 ```
 cat << EOF | kubectl apply -f -
-apiVersion: serving.knative.dev/v1alpha1
+apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: hellosvc
@@ -212,12 +222,9 @@ Test tag based urls
 
 ```
 HELLO_SVC_URL_PROD=${HELLO_SVC_URL/hellosvc/prod-hellosvc}
-HELLO_SVC_URL_STAGING=${HELLO_SVC_URL/hellosvc/staging-hellosvc}
-
-echo $HELLO_SVC_URL_PROD
-echo $HELLO_SVC_URL_STAGING
-
 curl $HELLO_SVC_URL_PROD/hello
+
+HELLO_SVC_URL_STAGING=${HELLO_SVC_URL/hellosvc/staging-hellosvc}
 curl $HELLO_SVC_URL_STAGING/hello
 ```
 
@@ -231,7 +238,7 @@ Configure knative autoscaling using kpa and 2 requests in-flight per pod
 
 ```
 cat << EOF | kubectl apply -f -
-apiVersion: serving.knative.dev/v1alpha1
+apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: hellosvc
@@ -257,13 +264,15 @@ spec:
 EOF
 ```
 
-Send 10 concurrent curl requests to service
+Send 20 concurrent curl requests to service - 5 times - for a total of 100 requests
 
 ```
-for i in {1..10}; do echo $HELLO_SVC_URL/hello?id=$i; done | xargs -P 10 -n 1 curl
+for i in {1..100}; do echo $HELLO_SVC_URL/hello?id=$i; done | xargs -P 20 -n 1 curl
 ```
 
 Examine pods
+
+Note: All pods should eventually scale to zero (terminate) when traffic has completed. Rerunning the previous command will cause the pods to auto scale out to a maximum of 20 to serve the incoming traffic.
 
 ```
 kubectl get pods --watch
@@ -339,7 +348,7 @@ Install InMemoryChannel
 
 ```
 cat << EOF | kubectl apply -f -
-apiVersion: messaging.knative.dev/v1alpha1
+apiVersion: messaging.knative.dev/v1
 kind: InMemoryChannel
 metadata:
   name: cloudacademy-channel
@@ -363,7 +372,7 @@ spec:
   jsonData: '{"message": "knative rocks!!", "from": "pingsource - channelsub"}'
   sink:
     ref:
-      apiVersion: messaging.knative.dev/v1alpha1
+      apiVersion: messaging.knative.dev/v1
       kind: InMemoryChannel
       name: cloudacademy-channel
 EOF
@@ -419,14 +428,14 @@ Install 2x Subscription
 
 ```
 cat << EOF | kubectl apply -f -
-apiVersion: messaging.knative.dev/v1alpha1
+apiVersion: messaging.knative.dev/v1
 kind: Subscription
 metadata:
   name: cloudacademy-sub1
   namespace: cloudacademy
 spec:
   channel:
-    apiVersion: messaging.knative.dev/v1alpha1
+    apiVersion: messaging.knative.dev/v1
     kind: InMemoryChannel
     name: cloudacademy-channel
   subscriber:
@@ -435,14 +444,14 @@ spec:
       kind: Service
       name: cloudacademy-service1
 ---
-apiVersion: messaging.knative.dev/v1alpha1
+apiVersion: messaging.knative.dev/v1
 kind: Subscription
 metadata:
   name: cloudacademy-sub2
   namespace: cloudacademy
 spec:
   channel:
-    apiVersion: messaging.knative.dev/v1alpha1
+    apiVersion: messaging.knative.dev/v1
     kind: InMemoryChannel
     name: cloudacademy-channel
   subscriber:
@@ -459,7 +468,6 @@ Examine SimpleLogger pods - log
 
 ```
 SIMPLELOGGER_SVC1_POD=$(kubectl get pod -l app=cloudacademy-service1-v1 --no-headers=true -o custom-columns=:metadata.name)
-
 SIMPLELOGGER_SVC2_POD=$(kubectl get pod -l app=cloudacademy-service2-v1 --no-headers=true -o custom-columns=:metadata.name)
 
 echo $SIMPLELOGGER_SVC1_POD
@@ -481,11 +489,23 @@ Configure automatic knative eventing injection
 kubectl label ns cloudacademy knative-eventing-injection=enabled
 ```
 
+Install default Broker
+
+```
+cat << EOF | kubectl apply -f -
+apiVersion: eventing.knative.dev/v1
+kind: broker
+metadata:
+ name: default
+ namespace: cloudacademy
+EOF
+```
+
 Get the broker url for the cloudacademy namespace
 
 ```
 kubectl config set-context --current --namespace cloudacademy
-kubectl get broker
+kubectl get broker default
 ```
 
 ## Step 7.2
@@ -504,7 +524,7 @@ spec:
   jsonData: '{"message": "knative rocks!!", "from": "pingsource - brokertrigger"}'
   sink:
     ref:
-      apiVersion: eventing.knative.dev/v1alpha1
+      apiVersion: eventing.knative.dev/v1
       kind: Broker
       name: default
 EOF
@@ -578,12 +598,13 @@ Install 3x Trigger
 
 ```
 cat << EOF | kubectl apply -f -
-apiVersion: eventing.knative.dev/v1alpha1
+apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
   name: cloudacademy-trigger1
   namespace: cloudacademy
 spec:
+  broker: default
   filter:
     attributes:
       type: dev.knative.sources.ping
@@ -593,12 +614,13 @@ spec:
       kind: Service
       name: cloudacademy-service1
 ---
-apiVersion: eventing.knative.dev/v1alpha1
+apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
   name: cloudacademy-trigger2
   namespace: cloudacademy
 spec:
+  broker: default
   filter:
     attributes:
       type: dev.knative.sources.ping
@@ -608,12 +630,13 @@ spec:
       kind: Service
       name: cloudacademy-service2
 ---
-apiVersion: eventing.knative.dev/v1alpha1
+apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
   name: cloudacademy-trigger3
   namespace: cloudacademy
 spec:
+  broker: default
   filter:
     attributes:
       type: cloudacademy.app.blah
@@ -651,7 +674,7 @@ EOF
 Retrieve broker url
 
 ```
-BROKER_URL=$(kubectl get broker -o jsonpath='{.items[0].status.address.url}')
+BROKER_URL=$(kubectl get broker default -o jsonpath='{.status.address.url}')
 echo BROKER_URL: $BROKER_URL
 ```
 
@@ -661,7 +684,6 @@ Perform an HTTP POST - send CloudEvent message
 
 ```
 kubectl exec -it curler -- curl -v $BROKER_URL \
--X POST \
 -H "Ce-Id: say-hello" \
 -H "Ce-Specversion: 1.0" \
 -H "Ce-Type: cloudacademy.app.blah" \
@@ -676,9 +698,7 @@ Examine SimpleLogger pods - log
 
 ```
 SIMPLELOGGER_SVC1_POD=$(kubectl get pod -l app=cloudacademy-service1-v1 --no-headers=true -o custom-columns=:metadata.name)
-
 SIMPLELOGGER_SVC2_POD=$(kubectl get pod -l app=cloudacademy-service2-v1 --no-headers=true -o custom-columns=:metadata.name)
-
 SIMPLELOGGER_SVC3_POD=$(kubectl get pod -l app=cloudacademy-service3-v1 --no-headers=true -o custom-columns=:metadata.name)
 
 echo $SIMPLELOGGER_SVC1_POD
