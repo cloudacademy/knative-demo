@@ -2,8 +2,7 @@
 
 The following instructions are used to demonstrate Knative Serving and Eventing configurations.
 
-**Update** (Wed 25 Nov 2020)
-Upgraded to work with the following versions:
+**Update** (Wed 25 Nov 2020) - instructions upgraded to work with the following versions:
 - Kubernetes: `v1.18.10`
 - Istio: `v1.8.0`
 - Knative: `v0.19.0`
