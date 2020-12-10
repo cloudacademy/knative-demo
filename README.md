@@ -2,7 +2,7 @@
 
 The following instructions are used to demonstrate Knative Serving and Eventing configurations. 
 
-**Note**: The following instructions have been tested on MacOS.
+**Note**: The following instructions require a K8s cluster with a LoadBalancer service which exposes a publicly routable IPv4 address. Consider using a cluster hosted on EKS, GKE, or AKS.
 
 **Update** (Wed 25 Nov 2020) - instructions upgraded to work with the following versions:
 - Kubernetes: `v1.18.10`
